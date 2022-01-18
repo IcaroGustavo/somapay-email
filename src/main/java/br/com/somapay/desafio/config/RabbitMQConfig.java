@@ -1,24 +1,34 @@
 package br.com.somapay.desafio.config;
 
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${spring.rabbitmq.queue}")
-    private String queue;
+    public static final String QUEUE = "somapay.email";
+    public static final String EXCHANGE_NAME = "somapay";
+    public static final String ROUTING_KEY = "";
 
     @Bean
-    public Queue queue() {
-        return new Queue(queue, true);
+    public Exchange declareExchange() {
+        return ExchangeBuilder.directExchange(EXCHANGE_NAME)
+                .durable(true)
+                .build();
     }
 
     @Bean
-    public Jackson2JsonMessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter();
+    public Queue declareQueue() {
+        return QueueBuilder.durable(QUEUE)
+                .build();
+    }
+
+    @Bean
+    public Binding declareBinding(Exchange exchange, Queue queue) {
+        return BindingBuilder.bind(queue)
+                .to(exchange)
+                .with(ROUTING_KEY)
+                .noargs();
     }
 }
